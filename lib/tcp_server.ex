@@ -19,7 +19,11 @@ defmodule TcpServer do
   defp loop_acceptor(socket) do
     {:ok, client} = :gen_tcp.accept(socket)
 
-    :gen_tcp.send(client, Packets.pack(940, Packets.FirstDate.encode()))
+    :gen_tcp.send(
+      client,
+      Packets.FirstDate.encode()
+      |> Packets.pack()
+    )
 
     serve(client)
     loop_acceptor(socket)

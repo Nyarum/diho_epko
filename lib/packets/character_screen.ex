@@ -3,6 +3,7 @@ defmodule Packets.CharacterScreen do
     data = <<0x7C, 0x35, 0x09, 0x19, 0xB2, 0x50, 0xD3, 0x49>>
 
     <<
+      931::16,
       0::16,
       byte_size(data)::16,
       data::bits,

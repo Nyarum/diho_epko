@@ -19,7 +19,14 @@ defmodule Events do
       <<_::16, _::32, 431::16, data::binary>> ->
         IO.inspect("auth data")
 
-        :gen_tcp.send(socket, Packets.pack(931, Packets.CharacterScreen.encode()))
+        res = Handlers.Auth.handle(data)
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
         nil
 
       <<0::8, 2::8>> ->
