@@ -15,3 +15,5 @@ case System.argv() do
   ["run"] -> TcpServer.accept(1973)
   _ -> IO.puts("no args")
 end
+
+Cachex.dump(:accounts, "./database_accounts.dump")

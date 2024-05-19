@@ -14,8 +14,6 @@ defmodule Events do
         loop(socket, storage)
 
       {:new_login, login} ->
-        IO.inspect("login")
-        IO.inspect("save login: #{login}")
         loop(socket, Map.put(storage, :login, login))
     end
   end
@@ -27,9 +25,6 @@ defmodule Events do
         IO.inspect("auth data")
 
         decode_data = Packets.Auth.decode(data)
-
-        IO.inspect("pid: #{inspect(self())}")
-        IO.inspect("login: #{inspect(decode_data)}")
 
         send(self(), {:new_login, decode_data.login})
 

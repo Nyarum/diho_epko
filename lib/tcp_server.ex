@@ -10,7 +10,7 @@ defmodule TcpServer do
     # 4. `reuseaddr: true` - allows us to reuse the address if the listener crashes
     #
     {:ok, socket} =
-      :gen_tcp.listen(port, [:binary, packet: 0, active: false, reuseaddr: true])
+      :gen_tcp.listen(port, [:binary, packet: 0, active: false, reuseaddr: false])
 
     Logger.info("Accepting connections on port #{port}")
     loop_acceptor(socket)
