@@ -69,6 +69,22 @@ defmodule Packets.CharacterScreen do
     >>
   end
 
+  @spec encode_character(
+          atom()
+          | %{
+              :look =>
+                atom()
+                | %{
+                    :hair => integer(),
+                    :item_grids => list(),
+                    :type_id => integer(),
+                    :ver => integer(),
+                    optional(any()) => any()
+                  },
+              :name => bitstring(),
+              optional(any()) => any()
+            }
+        ) :: <<_::8, _::_*1>>
   def encode_character(character) do
     is_active = 1
     look_bytes = look(character.look)
