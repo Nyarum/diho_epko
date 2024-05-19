@@ -19,7 +19,27 @@ defmodule Events do
       <<_::16, _::32, 431::16, data::binary>> ->
         IO.inspect("auth data")
 
-        res = Handlers.Auth.handle(data)
+        <<
+          key_len::16,
+          key::bytes-size(key_len),
+          login_len::16,
+          login::bytes-size(login_len),
+          password_len::16,
+          password::bytes-size(password_len),
+          mac_len::16,
+          mac::bytes-size(mac_len),
+          is_cheat::16,
+          client_version::16
+        >> = data
+
+        res =
+          Handlers.Auth.handle(%{
+            login: login,
+            password: password,
+            mac: mac,
+            is_cheat: is_cheat,
+            client_version: client_version
+          })
 
         :gen_tcp.send(
           socket,
