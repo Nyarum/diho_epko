@@ -72,9 +72,6 @@ defmodule Packets.CreateCharacter do
       next::binary
     >> = data
 
-    IO.inspect("look len: #{look_len}")
-    IO.inspect("look len really #{byte_size(next)}")
-
     %{
       name: name,
       map: map,

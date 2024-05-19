@@ -75,8 +75,6 @@ defmodule Packets.CharacterScreen do
     job = "Newbie" <> <<0::8>>
     level = 1
 
-    IO.inspect("encode character")
-
     <<
       is_active::8,
       byte_size(character.name)::16,
@@ -92,8 +90,6 @@ defmodule Packets.CharacterScreen do
   @spec encode(list()) :: <<_::8, _::_*1>>
   def encode(characters) do
     data = <<0x7C, 0x35, 0x09, 0x19, 0xB2, 0x50, 0xD3, 0x49>>
-
-    IO.inspect(characters, label: "Characters")
 
     characters_bytes =
       List.foldr(characters, <<>>, fn item, acc -> acc <> encode_character(item) end)
