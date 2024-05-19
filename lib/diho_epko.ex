@@ -4,21 +4,14 @@ Cachex.Services.Overseer.start_link()
 
 Supervisor.start_link(
   [
-    {Cachex, name: :storage}
+    {Cachex, name: :accounts}
   ],
   strategy: :one_for_one
 )
 
-Cachex.load(:storage, "./database.dump")
-
-Cachex.set!(:storage, "hello", "world")
-
-Cachex.get!(:storage, "hello")
-|> IO.inspect()
+Cachex.load(:accounts, "./database_accounts.dump")
 
 case System.argv() do
   ["run"] -> TcpServer.accept(1973)
   _ -> IO.puts("no args")
 end
-
-Cachex.dump(:storage, "./database.dump")
