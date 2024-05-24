@@ -63,6 +63,32 @@ defmodule Events do
           |> Packets.pack()
         )
 
+      # create pincode
+      <<_::16, _::32, 346::16, data::binary>> ->
+        IO.inspect("create pincode data")
+
+        res =
+          Handlers.CreatePincode.handle(storage, Packets.CreatePincode.decode(data))
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
+      # update pincode
+      <<_::16, _::32, 347::16, data::binary>> ->
+        IO.inspect("update pincode data")
+
+        res =
+          Handlers.UpdatePincode.handle(storage, Packets.UpdatePincode.decode(data))
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
       # ping
       <<0::8, 2::8>> ->
         :gen_tcp.send(socket, data)
