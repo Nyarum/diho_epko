@@ -1,6 +1,4 @@
 defmodule Events do
-  alias Combine.Parsers.Binary
-
   def start_link(socket) do
     Task.start_link(fn -> loop(socket, %{}) end)
   end

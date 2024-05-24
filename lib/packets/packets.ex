@@ -5,6 +5,6 @@ defmodule Packets do
   end
 
   def encode_string_with_null(str) do
-    <<byte_size(str) + 1::16, str::utf8, 0::8>>
+    <<byte_size(str) + 1::16, str::binary, 0::8>>
   end
 end
