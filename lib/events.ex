@@ -50,6 +50,19 @@ defmodule Events do
           |> Packets.pack()
         )
 
+      # enter game
+      <<_::16, _::32, 433::16, data::binary>> ->
+        IO.inspect("enter game data")
+
+        res =
+          Handlers.EnterGame.handle(storage, Packets.World.decode(data))
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
       # ping
       <<0::8, 2::8>> ->
         :gen_tcp.send(socket, data)

@@ -286,4 +286,14 @@ defmodule Packets.World do
       world.cha_main_id::32
     >>
   end
+
+  def decode(data) do
+    <<name_len::16, name::bytes-size(name_len)>> = data
+
+    name_string = :binary.part(name, 0, name_len - 1)
+
+    %{
+      name: name_string
+    }
+  end
 end
