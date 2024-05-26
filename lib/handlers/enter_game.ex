@@ -24,18 +24,24 @@ defmodule Handlers.EnterGame do
 
     item_grids =
       Enum.map(character.look.item_grids, fn item_grid ->
-        %{
-          id: item_grid.id,
-          item_sync: %{
-            endure: Enum.at(item_grid.endures, 0),
-            energy: Enum.at(item_grid.energies, 0),
-            is_valid: 1
-          },
-          is_db_params: 1,
-          db_params: item_grid.db_params,
-          is_inst_attrs: 1,
-          inst_attrs: item_grid.inst_attrs
-        }
+        if item_grid.id == 0 do
+          %{id: item_grid.id}
+        else
+          %{
+            id: item_grid.id,
+            item_show: %{
+              num: 1,
+              endure: item_grid.endures,
+              energy: item_grid.energies,
+              forge_lv: 1,
+              is_valid: 1
+            },
+            is_db_params: 1,
+            db_params: item_grid.db_params,
+            is_inst_attrs: 1,
+            inst_attrs: item_grid.inst_attrs
+          }
+        end
       end)
 
     IO.inspect(item_grids, pretty: true, limit: 30000)

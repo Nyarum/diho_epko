@@ -29,9 +29,9 @@ defmodule Packets.World do
       <<id_bytes::binary>>
     else
       if syn_type == @syn_look_change do
-        id_bytes <> look_item_show(li.item_show)
+        id_bytes <> look_item_sync(li.item_sync)
       else
-        mediate_bytes = id_bytes <> look_item_sync(li.item_sync) <> <<li.is_db_params::8>>
+        mediate_bytes = id_bytes <> look_item_show(li.item_show) <> <<li.is_db_params::8>>
 
         if li.is_db_params == 1 do
           db_params_bytes =
