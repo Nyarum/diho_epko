@@ -8,10 +8,10 @@ defmodule Packets.World do
 
   def look_item_show(li) do
     endure_bytes =
-      List.foldr(li.endure, <<>>, fn item, acc -> acc <> <<item::16>> end)
+      List.foldl(li.endure, <<>>, fn item, acc -> acc <> <<item::16>> end)
 
     energy_bytes =
-      List.foldr(li.energy, <<>>, fn item, acc -> acc <> <<item::16>> end)
+      List.foldl(li.energy, <<>>, fn item, acc -> acc <> <<item::16>> end)
 
     <<
       li.num::16,
@@ -35,18 +35,22 @@ defmodule Packets.World do
 
         if li.is_db_params == 1 do
           db_params_bytes =
-            List.foldr(li.db_params, <<>>, fn item, acc -> acc <> <<item::32>> end)
+            List.foldl(li.db_params, <<>>, fn item, acc -> acc <> <<item::32>> end)
 
           mediate_bytes2 = mediate_bytes <> db_params_bytes <> <<li.is_inst_attrs::8>>
 
           if li.is_inst_attrs == 1 do
             inst_attrs_bytes =
-              List.foldr(li.inst_attrs, <<>>, fn item, acc ->
+              List.foldl(li.inst_attrs, <<>>, fn item, acc ->
                 acc <> <<item.id::16, item.value::16>>
               end)
 
             mediate_bytes2 <> inst_attrs_bytes
+          else
+            mediate_bytes2
           end
+        else
+          mediate_bytes
         end
       end
     end
@@ -54,7 +58,7 @@ defmodule Packets.World do
 
   def look_human(human, syn_type) do
     item_grids_bytes =
-      List.foldr(human.item_grids, <<>>, fn item, acc -> acc <> look_item(item, syn_type) end)
+      List.foldl(human.item_grids, <<>>, fn item, acc -> acc <> look_item(item, syn_type) end)
 
     <<human.hair_id::16, item_grids_bytes::binary>>
   end
@@ -74,10 +78,10 @@ defmodule Packets.World do
   def look(look) do
     boat_or_human_bytes =
       case look.is_boat do
-        true ->
+        1 ->
           look_boat(look.boat)
 
-        false ->
+        0 ->
           look_human(look.human, look.syn_type)
       end
 
@@ -106,16 +110,19 @@ defmodule Packets.World do
   end
 
   def look_append(look_append) do
-    look_id = <<look_append.look_id::16>>
-
-    if look_append.look_id != 0 do
-      look_id <> <<look_append.is_valid::8>>
-    end
+    <<look_append.look_id::16>> <>
+      if look_append.look_id != 0 do
+        <<look_append.is_valid::8>>
+      else
+        <<>>
+      end
   end
 
   def base(base) do
     look_append_bytes =
-      List.foldr(base.look_append, <<>>, fn item, acc -> acc <> look_append(item) end)
+      List.foldl(base.look_append, <<>>, fn item, acc ->
+        acc <> look_append(item)
+      end)
 
     <<
       base.cha_id::32,
@@ -146,7 +153,7 @@ defmodule Packets.World do
 
   def skill(skill) do
     params_bytes =
-      List.foldr(skill.params, <<>>, fn item, acc -> acc <> <<item::16>> end)
+      List.foldl(skill.params, <<>>, fn item, acc -> acc <> <<item::16>> end)
 
     <<
       skill.id::16,
@@ -163,7 +170,7 @@ defmodule Packets.World do
 
   def skill_bag(skill_bag) do
     skills_bytes =
-      List.foldr(skill_bag.skills, <<>>, fn item, acc -> acc <> skill(item) end)
+      List.foldl(skill_bag.skills, <<>>, fn item, acc -> acc <> skill(item) end)
 
     <<
       skill_bag.skill_id::16,
@@ -179,7 +186,7 @@ defmodule Packets.World do
 
   def skill_states(skill_states) do
     states_bytes =
-      List.foldr(skill_states.states, <<>>, fn item, acc -> acc <> skill_state(item) end)
+      List.foldl(skill_states.states, <<>>, fn item, acc -> acc <> skill_state(item) end)
 
     <<skill_states.len::8, states_bytes::binary>>
   end
@@ -190,7 +197,7 @@ defmodule Packets.World do
 
   def attributes(attributes) do
     attrs_bytes =
-      List.foldr(attributes.attrs, <<>>, fn item, acc -> acc <> attribute(item) end)
+      List.foldl(attributes.attrs, <<>>, fn item, acc -> acc <> attribute(item) end)
 
     <<attributes.value_type::8, attributes.num::16, attrs_bytes::binary>>
   end
@@ -207,10 +214,10 @@ defmodule Packets.World do
         mediate_bytes2 = mediate_bytes <> <<kitbag_item.num::16>>
 
         endure_bytes =
-          List.foldr(kitbag_item.endure, <<>>, fn item, acc -> acc <> <<item::16>> end)
+          List.foldl(kitbag_item.endure, <<>>, fn item, acc -> acc <> <<item::16>> end)
 
         energy_bytes =
-          List.foldr(kitbag_item.energy, <<>>, fn item, acc -> acc <> <<item::16>> end)
+          List.foldl(kitbag_item.energy, <<>>, fn item, acc -> acc <> <<item::16>> end)
 
         mediate_bytes3 =
           mediate_bytes2 <>
@@ -221,30 +228,43 @@ defmodule Packets.World do
               kitbag_item.is_valid::8
             >>
 
-        if kitbag_item.id == @boat_id do
-          mediate_bytes3 <> <<kitbag_item.item_db_inst_id::32>>
-        else
-          mediate_bytes3
-        end <>
-          <<kitbag_item.item_db_id::32>> <>
+        res =
           if kitbag_item.id == @boat_id do
-            <<0::32>>
+            mediate_bytes3 <> <<kitbag_item.item_db_inst_id::32>>
           else
-            <<kitbag_item.item_db_inst_id::32>>
+            mediate_bytes3
           end <>
-          <<kitbag_item.is_params::8>> <>
-          if kitbag_item.is_params == 1 do
-            List.foldr(kitbag_item.inst_attrs, <<>>, fn item, acc ->
-              acc <> <<item.id::16, item.value::16>>
-            end)
-          end
+            <<kitbag_item.item_db_id::32>> <>
+            if kitbag_item.id == @boat_id do
+              <<0::32>>
+            else
+              <<kitbag_item.item_db_inst_id::32>>
+            end <>
+            <<kitbag_item.is_params::8>> <>
+            if kitbag_item.is_params == 1 do
+              List.foldl(kitbag_item.inst_attrs, <<>>, fn item, acc ->
+                acc <> <<item.id::16, item.value::16>>
+              end)
+            else
+              <<>>
+            end
+
+        res
+      else
+        mediate_bytes
       end
+    else
+      grid_id
     end
   end
 
   def kitbag(kitbag) do
+    IO.inspect("kitbag: #{inspect(kitbag)}")
+
     items_bytes =
-      List.foldr(kitbag.items, <<>>, fn item, acc -> acc <> kitbag_item(item) end)
+      List.foldl(kitbag.items, <<>>, fn item, acc ->
+        acc <> kitbag_item(item)
+      end)
 
     <<kitbag.value_type::8, kitbag.num::16, items_bytes::binary>>
   end
@@ -254,7 +274,7 @@ defmodule Packets.World do
   end
 
   def shortcuts(shortcuts) do
-    List.foldr(shortcuts.items, <<>>, fn item, acc -> acc <> shortcut(item) end)
+    List.foldl(shortcuts.items, <<>>, fn item, acc -> acc <> shortcut(item) end)
   end
 
   def boat(boat) do
@@ -268,7 +288,7 @@ defmodule Packets.World do
 
   def encode(world) do
     character_boat_bytes =
-      List.foldr(world.character_boat, <<>>, fn item, acc -> acc <> boat(item) end)
+      List.foldl(world.character_boat, <<>>, fn item, acc -> acc <> boat(item) end)
 
     <<
       516::16,

@@ -26,7 +26,7 @@ defmodule Handlers.EnterGame do
           id: 0
         }
       end)
-      |> Kernel.++(%{grid_id: 65_535})
+      |> Kernel.++([%{id: 0, grid_id: 65_535}])
 
     shortcuts =
       Enum.to_list(0..35)
@@ -61,12 +61,12 @@ defmodule Handlers.EnterGame do
         position: %{
           x: 217_475,
           y: 278_175,
-          z: 40
+          radius: 40
         },
         angle: 0,
         team_leader_id: 0,
         side: %{
-          left: 0
+          id: 0
         },
         entity_event: %{
           id: 10_271,
@@ -97,8 +97,9 @@ defmodule Handlers.EnterGame do
         states: []
       },
       character_attribute: %{
-        len: 0,
-        attributes: []
+        value_type: 0,
+        num: 0,
+        attrs: []
       },
       character_kitbag: %{
         value_type: 0,

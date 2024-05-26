@@ -9,11 +9,24 @@ Supervisor.start_link(
   strategy: :one_for_one
 )
 
+children = [
+  {TcpServer.NonBlocking, []}
+]
+
+opts = [strategy: :one_for_one, name: TcpServer.Supervisor]
+
 Cachex.load(:accounts, "./database_accounts.dump")
 
 case System.argv() do
-  ["run"] -> TcpServer.accept(1973)
-  _ -> IO.puts("no args")
+  ["run"] ->
+    Supervisor.start_link(children, opts)
+
+    receive do
+      _ -> IO.puts("no way")
+    end
+
+  _ ->
+    IO.puts("no args")
 end
 
 Cachex.dump(:accounts, "./database_accounts.dump")

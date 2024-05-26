@@ -1,22 +1,61 @@
-defmodule Events do
-  def start_link(socket) do
-    Task.start_link(fn -> loop(socket, %{}) end)
+defmodule Events.AcceptData do
+  use GenServer
+  require Logger
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts)
   end
 
-  defp loop(socket, storage) do
-    IO.inspect("pid 2: #{inspect(self())}")
-
-    receive do
-      {:receive, data} ->
-        handle(socket, data, storage)
-        loop(socket, storage)
-
-      {:new_login, login} ->
-        loop(socket, Map.put(storage, :login, login))
-    end
+  @impl true
+  def init(state) do
+    {:ok, %{socket: state.socket, storage: %{}}}
   end
 
-  defp handle(socket, data, storage) do
+  @impl true
+  def handle_info({:tcp, socket, data}, state) do
+    <<len::16, _::binary>> = data
+
+    data =
+      if len != byte_size(data) do
+        more_data = get_more_data(socket, len - byte_size(data))
+        data <> more_data
+      else
+        data
+      end
+
+    Events.Handle.handle(socket, data, state.storage)
+
+    :inet.setopts(socket, active: :once)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:tcp_closed, socket}, state) do
+    Logger.info("Client disconnected: #{inspect(socket)}")
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:tcp_error, socket, reason}, state) do
+    Logger.error("Error on socket #{inspect(socket)}: #{reason}")
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:new_login, login}, state) do
+    Logger.info("Save new login to storage #{inspect(state)}")
+
+    {:noreply, %{socket: state.socket, storage: Map.put(state.storage, :login, login)}}
+  end
+
+  def get_more_data(socket, len) do
+    {:ok, data} = :gen_tcp.recv(socket, len)
+    data
+  end
+end
+
+defmodule Events.Handle do
+  def handle(socket, data, storage) do
     case data do
       # auth
       <<_::16, _::32, 431::16, data::binary>> ->
