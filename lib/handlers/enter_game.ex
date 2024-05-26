@@ -1,5 +1,5 @@
 defmodule Handlers.EnterGame do
-  def handle(storage, enter_game) do
+  def handle(storage, enter_game, world_id) do
     {:ok, account} = Cachex.get(:accounts, storage.login)
 
     {is_new_char, updated_account} =
@@ -19,8 +19,6 @@ defmodule Handlers.EnterGame do
     )
 
     character = Storage.Character.get_character(storage.login, enter_game.name)
-
-    IO.inspect(character.look, pretty: true, limit: 30000)
 
     item_grids =
       Enum.map(character.look.item_grids, fn item_grid ->
@@ -43,10 +41,6 @@ defmodule Handlers.EnterGame do
           }
         end
       end)
-
-    IO.inspect(item_grids, pretty: true, limit: 30000)
-
-    IO.inspect("item len #{length(item_grids)}")
 
     look_append =
       Enum.to_list(0..3)
@@ -74,6 +68,8 @@ defmodule Handlers.EnterGame do
         %{value_type: 0, grid_id: 0}
       end)
 
+    IO.inspect("character id: #{inspect(character.id)}")
+
     Packets.World.encode(%{
       enter_ret: 0,
       auto_lock: 0,
@@ -83,9 +79,9 @@ defmodule Handlers.EnterGame do
       map_name: "garner",
       can_team: 1,
       character_base: %{
-        cha_id: 4,
-        world_id: 10_271,
-        comm_id: 10_271,
+        cha_id: character.id,
+        world_id: world_id,
+        comm_id: world_id,
         comm_name: "",
         gm_lvl: 0,
         handle: 33_565_845,
@@ -150,7 +146,7 @@ defmodule Handlers.EnterGame do
         items: shortcuts
       },
       character_boat: [],
-      cha_main_id: 10_271
+      cha_main_id: world_id
     })
   end
 end

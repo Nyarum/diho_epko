@@ -53,6 +53,20 @@ defmodule Events.AcceptData do
     {:noreply, %{socket: state.socket, storage: Map.put(state.storage, :login, login)}}
   end
 
+  @impl true
+  def handle_info({:active_char, name}, state) do
+    Logger.info("Save new active char to storage #{inspect(state)}")
+
+    {:noreply, %{socket: state.socket, storage: Map.put(state.storage, :active_char, name)}}
+  end
+
+  @impl true
+  def handle_info({:active_world, id}, state) do
+    Logger.info("Save new active world to storage #{inspect(state)}")
+
+    {:noreply, %{socket: state.socket, storage: Map.put(state.storage, :active_world, id)}}
+  end
+
   def get_more_data(socket, len) do
     {:ok, data} = :gen_tcp.recv(socket, len)
     data
@@ -109,8 +123,15 @@ defmodule Events.Handle do
       <<_::16, _::32, 433::16, data::binary>> ->
         IO.inspect("enter game data")
 
+        decode_data = Packets.World.decode(data)
+
+        world_id = 12072
+
         res =
-          Handlers.EnterGame.handle(storage, Packets.World.decode(data))
+          Handlers.EnterGame.handle(storage, decode_data, world_id)
+
+        send(self(), {:active_char, decode_data.name})
+        send(self(), {:active_world, world_id})
 
         :gen_tcp.send(
           socket,
@@ -152,6 +173,22 @@ defmodule Events.Handle do
           Handlers.RemoveCharacter.handle(
             storage,
             Packets.CharacterScreen.decode_remove_character(data)
+          )
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
+      # say to chat
+      <<_::16, _::32, 1::16, data::binary>> ->
+        IO.inspect("say to chat data")
+
+        res =
+          Handlers.Chat.handle(
+            storage,
+            Packets.Chat.decode(data)
           )
 
         :gen_tcp.send(

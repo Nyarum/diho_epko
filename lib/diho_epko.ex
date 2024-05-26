@@ -9,6 +9,13 @@ Supervisor.start_link(
   strategy: :one_for_one
 )
 
+Supervisor.start_link(
+  [
+    {Cachex, name: :character_ids}
+  ],
+  strategy: :one_for_one
+)
+
 children = [
   {TcpServer.NonBlocking, []}
 ]
