@@ -72,9 +72,12 @@ defmodule Packets.CreateCharacter do
       next::binary
     >> = data
 
+    name_string = :binary.part(name, 0, name_len - 1)
+    map_string = :binary.part(map, 0, map_len - 1)
+
     %{
-      name: name,
-      map: map,
+      name: name_string,
+      map: map_string,
       look: look(next)
     }
   end

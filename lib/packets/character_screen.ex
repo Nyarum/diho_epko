@@ -86,18 +86,19 @@ defmodule Packets.CharacterScreen do
             }
         ) :: <<_::8, _::_*1>>
   def encode_character(character) do
+    IO.inspect("Character #{inspect(character)}")
+
     is_active = 1
     look_bytes = look(character.look)
-    job = "Newbie" <> <<0::8>>
-    level = 1
+
+    char_name = Packets.encode_string_with_null(character.name)
+    job = Packets.encode_string_with_null(character.job)
 
     <<
       is_active::8,
-      byte_size(character.name)::16,
-      character.name::bits,
-      byte_size(job)::16,
+      char_name::bits,
       job::bits,
-      level::16,
+      character.level::16,
       byte_size(look_bytes)::16,
       look_bytes::bits
     >>
@@ -107,8 +108,10 @@ defmodule Packets.CharacterScreen do
   def encode(characters) do
     data = <<0x7C, 0x35, 0x09, 0x19, 0xB2, 0x50, 0xD3, 0x49>>
 
+    Enum.map(characters, fn item -> IO.inspect("character name: #{inspect(item)}") end)
+
     characters_bytes =
-      List.foldr(characters, <<>>, fn item, acc -> acc <> encode_character(item) end)
+      List.foldl(characters, <<>>, fn item, acc -> acc <> encode_character(item) end)
 
     <<
       931::16,
@@ -121,5 +124,21 @@ defmodule Packets.CharacterScreen do
       0::32,
       12_820::32
     >>
+  end
+
+  def decode_remove_character(data) do
+    <<
+      name_len::16,
+      name::bytes-size(name_len),
+      hash_len::16,
+      hash::bytes-size(hash_len)
+    >> = data
+
+    name_string = :binary.part(name, 0, name_len - 1)
+
+    %{
+      name: name_string,
+      hash: hash
+    }
   end
 end

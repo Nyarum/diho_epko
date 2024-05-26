@@ -126,6 +126,22 @@ defmodule Events.Handle do
           |> Packets.pack()
         )
 
+      # remove character
+      <<_::16, _::32, 436::16, data::binary>> ->
+        IO.inspect("remove character data")
+
+        res =
+          Handlers.RemoveCharacter.handle(
+            storage,
+            Packets.CharacterScreen.decode_remove_character(data)
+          )
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
       # ping
       <<0::8, 2::8>> ->
         :gen_tcp.send(socket, data)

@@ -1,5 +1,27 @@
 defmodule Handlers.EnterGame do
   def handle(storage, enter_game) do
+    {:ok, account} = Cachex.get(:accounts, storage.login)
+
+    {is_new_char, updated_account} =
+      Map.get_and_update(account, :is_new_char, fn current_value -> {current_value, 0} end)
+
+    is_new_char_updated =
+      if is_new_char == nil do
+        1
+      else
+        is_new_char
+      end
+
+    Cachex.set!(
+      :accounts,
+      storage.login,
+      updated_account
+    )
+
+    character = Storage.Character.get_character(storage.login, enter_game.name)
+
+    IO.inspect("type id #{character.look.type_id}")
+
     item_grids =
       Enum.to_list(0..9)
       |> Enum.map(fn i ->
@@ -39,24 +61,24 @@ defmodule Handlers.EnterGame do
       auto_lock: 0,
       kitbag_lock: 0,
       enter_type: 1,
-      is_new_char: 1,
+      is_new_char: is_new_char_updated,
       map_name: "garner",
       can_team: 1,
       character_base: %{
         cha_id: 4,
         world_id: 10_271,
         comm_id: 10_271,
-        comm_name: "comm name",
+        comm_name: "",
         gm_lvl: 0,
         handle: 33_565_845,
         ctrl_type: 0,
-        name: "name",
-        motto_name: "motto name",
+        name: character.name,
+        motto_name: "",
         icon: 0,
         guild_id: 0,
-        guild_name: "guild name",
-        guild_motto: "guild motto",
-        stall_name: "stall name",
+        guild_name: "",
+        guild_motto: "",
+        stall_name: "",
         state: 0,
         position: %{
           x: 217_475,
@@ -76,7 +98,7 @@ defmodule Handlers.EnterGame do
         },
         look: %{
           syn_type: 0,
-          type_id: 4,
+          type_id: character.look.type_id,
           is_boat: 0,
           human: %{
             hair_id: 2291,
