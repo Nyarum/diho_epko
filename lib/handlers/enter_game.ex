@@ -20,15 +20,27 @@ defmodule Handlers.EnterGame do
 
     character = Storage.Character.get_character(storage.login, enter_game.name)
 
-    IO.inspect("type id #{character.look.type_id}")
+    IO.inspect(character.look, pretty: true, limit: 30000)
 
     item_grids =
-      Enum.to_list(0..9)
-      |> Enum.map(fn i ->
+      Enum.map(character.look.item_grids, fn item_grid ->
         %{
-          id: 0
+          id: item_grid.id,
+          item_sync: %{
+            endure: Enum.at(item_grid.endures, 0),
+            energy: Enum.at(item_grid.energies, 0),
+            is_valid: 1
+          },
+          is_db_params: 1,
+          db_params: item_grid.db_params,
+          is_inst_attrs: 1,
+          inst_attrs: item_grid.inst_attrs
         }
       end)
+
+    IO.inspect(item_grids, pretty: true, limit: 30000)
+
+    IO.inspect("item len #{length(item_grids)}")
 
     look_append =
       Enum.to_list(0..3)
@@ -101,7 +113,7 @@ defmodule Handlers.EnterGame do
           type_id: character.look.type_id,
           is_boat: 0,
           human: %{
-            hair_id: 2291,
+            hair_id: character.look.hair,
             item_grids: item_grids
           }
         },

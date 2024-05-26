@@ -15,6 +15,11 @@ defmodule Events.AcceptData do
   def handle_info({:tcp, socket, data}, state) do
     <<len::16, _::binary>> = data
 
+    IO.inspect("data from client: #{inspect(data)}")
+
+    IO.inspect("len from packet header: #{len}")
+    IO.inspect("len of data from client: #{byte_size(data)}")
+
     data =
       if len != byte_size(data) do
         more_data = get_more_data(socket, len - byte_size(data))
@@ -67,6 +72,19 @@ defmodule Events.Handle do
 
         res =
           Handlers.Auth.handle(decode_data)
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
+      # choice character
+      <<_::16, _::32, 434::16>> ->
+        IO.inspect("choice character data")
+
+        res =
+          Handlers.ChoiceCharacter.handle(storage)
 
         :gen_tcp.send(
           socket,

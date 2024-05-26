@@ -320,4 +320,14 @@ defmodule Packets.World do
       name: name_string
     }
   end
+
+  def decode_choice_character(data) do
+    <<name_len::16, name::bytes-size(name_len)>> = data
+
+    name_string = :binary.part(name, 0, name_len - 1)
+
+    %{
+      name: name_string
+    }
+  end
 end
