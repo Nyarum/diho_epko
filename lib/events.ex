@@ -197,6 +197,22 @@ defmodule Events.Handle do
           |> Packets.pack()
         )
 
+      # action
+      <<_::16, _::32, 6::16, data::binary>> ->
+        IO.inspect("action data")
+
+        res =
+          Handlers.Action.handle(
+            storage,
+            Packets.Action.decode(data)
+          )
+
+        :gen_tcp.send(
+          socket,
+          res
+          |> Packets.pack()
+        )
+
       # ping
       <<0::8, 2::8>> ->
         :gen_tcp.send(socket, data)

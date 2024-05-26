@@ -10,6 +10,17 @@ defmodule Packets.Action do
   def decode(data) do
     <<world_id::32, move_count::32, action_type::8, point_size::16, from_x::32, from_y::32,
       to_x::32, to_y::32>> = data
+
+    %{
+      world_id: world_id,
+      move_count: move_count,
+      action_type: action_type,
+      point_size: point_size,
+      from_x: from_x,
+      from_y: from_y,
+      to_x: to_x,
+      to_y: to_y
+    }
   end
 
   def encode(data) do
